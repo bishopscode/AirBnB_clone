@@ -47,14 +47,16 @@ class BaseModel:
     
 
     def to_dict(self) -> dict:
-        """Return a dictionary of instance attributes."""
+        """
+        Return a dictionary of every instance attributes.
+        """
         sect = ['name', 'my_number']
-        dictionary = {k: v for k, v in self.__dict__.items() if k not in sect}
+        dictionary = {key: value for key, value in self.__dict__.items() if key not in sect}
         dictionary['__class__'] = self.__class__.__name__
 
-        for k, v in dictionary.items():
-            if isinstance(v, datetime):
-                dictionary[k] = v.isoformat()
+        for key, value in dictionary.items():
+            if isinstance(value, datetime):
+                dictionary[key] = value.isoformat()
 
         return dictionary
     

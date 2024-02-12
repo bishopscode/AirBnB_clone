@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from json import dumps, loads
 from models.base_model import BaseModel
 from os.path import isfile
@@ -11,7 +13,7 @@ from models.review import Review
 
 class FileStorage:
     """
-        Private class attributes:
+    Private class attributes:
     __file_path: string - path to the JSON file
     __objects: dictionary - empty, will store all objects by <class name>.id
     """
@@ -57,7 +59,7 @@ class FileStorage:
         If the file does not exist, no exception should be raised
         '''
         staged_classes = ["BaseModel", "User", "State", "City",
-                           "Amenity", "Place", "Review"]
+                          "Amenity", "Place", "Review"]
         filename = FileStorage.__file_path
         if isfile(filename):
             with open(filename, "r") as f:

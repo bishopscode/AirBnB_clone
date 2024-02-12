@@ -7,6 +7,13 @@ class BaseModel:
     BaseModel class enables creation and instances manager.
     """
     def __init__(self, *args, **kwargs):
+        '''
+        Initializes BaseModel instance.
+
+        Args:
+            *args: Variable length argument list.
+            **kwargs: Arbitrary keyword arguments.
+        '''
         if kwargs:
             for key, value in kwargs.items():
                 if key == 'created_at':
@@ -27,14 +34,23 @@ class BaseModel:
             models.storage.new(self)
 
     def save(self):
+        '''
+        Saves the instance to the storage.
+        '''
         self.updated_at = datetime.now()
         models.storage.save()
 
     def __str__(self):
+        '''
+        Returns string representation of the instance.
+        '''
         class_name = type(self).__name__
         return "[{}] ({}) {}".format(class_name, self.id, self.__dict__)
 
     def to_dict(self):
+        '''
+        Returns a dictionary containing all keys/values of the instance.
+        '''
         sect = ['name', 'my_number']
         dictionary = {key: value for key, value in self.__dict__.items() if key not in sect}
         dictionary['__class__'] = self.__class__.__name__

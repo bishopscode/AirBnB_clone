@@ -1,13 +1,15 @@
 #!/usr/bin/python3
 
 from datetime import datetime
-import models
+from models import storage
 import uuid
+
 
 class BaseModel:
     """
     BaseModel class enables creation and instances manager.
     """
+
     def __init__(self, *args, **kwargs):
         '''
         Initializes BaseModel instance.
@@ -28,31 +30,31 @@ class BaseModel:
                     self.id = str(value)
                 else:
                     setattr(self, key, value)
-            models.storage.new(self)
         else:
             self.id = str(uuid.uuid4())
             self.created_at = datetime.now()
             self.updated_at = self.created_at
-            models.storage.new(self)
+            storage.new(self)  # Use the storage attribute to add the instance
 
     def save(self):
         '''
         Saves the instance to the storage.
         '''
         self.updated_at = datetime.now()
-        models.storage.save()
+        storage.save()  # Use the storage attribute to save the instance
 
     def __str__(self):
         '''
-        Returns string representation of the instance.
+        Returns string representation of instances.
         '''
         class_name = type(self).__name__
+
         return "[{}] ({}) {}".format(class_name, self.id, self.__dict__)
 
-    def to_dict(self):
-        '''
-        Returns a dictionary containing all keys/values of the instance.
-        '''
+    def to_dict(self) -> dict:
+        """
+        Return a dictionary of every instance attributes.
+        """
         sect = ['name', 'my_number']
         dictionary = {key: value for key, value in self.__dict__.items() if key not in sect}
         dictionary['__class__'] = self.__class__.__name__

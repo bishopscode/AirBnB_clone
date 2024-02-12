@@ -7,6 +7,11 @@ import shlex
 import models
 from models.base_model import BaseModel
 from models.user import User
+from models.state import State
+from models.city import City
+from models.place import Place
+from models.amenity import Amenity
+from models.review import Review
 
 
 class HBNBCommand(cmd.Cmd):
@@ -25,7 +30,7 @@ class HBNBCommand(cmd.Cmd):
             return
 
         class_name = line.split()[0]
-        if class_name not in ['BaseModel', 'User']:
+        if class_name not in ['BaseModel', 'User', 'State', 'City', 'Place', 'Amenity', 'Review']:
             print("** class doesn't exist **")
             return
 
@@ -43,7 +48,7 @@ class HBNBCommand(cmd.Cmd):
             return
 
         args = shlex.split(line)
-        if args[0] not in ['BaseModel', 'User']:
+        if args[0] not in ['BaseModel', 'User', 'State', 'City', 'Place', 'Amenity', 'Review']:
             print("** class doesn't exist **")
             return
         elif len(args) == 1:
@@ -66,7 +71,7 @@ class HBNBCommand(cmd.Cmd):
             return
 
         args = shlex.split(line)
-        if args[0] not in ['BaseModel', 'User']:
+        if args[0] not in ['BaseModel', 'User', 'State', 'City', 'Place', 'Amenity', 'Review']:
             print("** class doesn't exist **")
             return
         elif len(args) == 1:
@@ -89,7 +94,7 @@ class HBNBCommand(cmd.Cmd):
         all_objs = models.storage.all()
         if not line:
             print([str(obj) for obj in all_objs.values()])
-        elif line not in ['BaseModel', 'User']:
+        elif line not in ['BaseModel', 'User', 'State', 'City', 'Place', 'Amenity', 'Review']:
             print("** class doesn't exist **")
         else:
             print([str(obj) for obj in all_objs.values() if type(obj).__name__ == line])
@@ -104,7 +109,7 @@ class HBNBCommand(cmd.Cmd):
             return
 
         args = shlex.split(line)
-        if args[0] not in ['BaseModel', 'User']:
+        if args[0] not in ['BaseModel', 'User', 'State', 'City', 'Place', 'Amenity', 'Review']:
             print("** class doesn't exist **")
             return
         elif len(args) == 1:

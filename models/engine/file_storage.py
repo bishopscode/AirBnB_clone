@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 from json import dumps, loads
 from models.base_model import BaseModel
 from os.path import isfile
@@ -68,4 +66,5 @@ class FileStorage:
             for key, value in full_dict.items():
                 class_name, obj_id = key.split(".")
                 if class_name in staged_classes:
-                    eval("self.new({}(**value))".format(class_name))
+                    cls = self.CLASSES[class_name]
+                    self.new(cls(**value))

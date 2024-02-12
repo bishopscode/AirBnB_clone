@@ -1,13 +1,15 @@
 #!/usr/bin/python3
 
 from datetime import datetime
-from models.engine.file_storage import FileStorage
+from models.engine.file_storage import FileStorage  # Import FileStorage here
 import uuid
 
 class BaseModel:
     """
     BaseModel class enables creation and instances manager.
     """
+
+    storage = FileStorage()  # Define the storage attribute here
 
     def __init__(self, *args, **kwargs):
         '''
@@ -33,14 +35,14 @@ class BaseModel:
             self.id = str(uuid.uuid4())
             self.created_at = datetime.now()
             self.updated_at = self.created_at
-            FileStorage().new(self)  # Use the FileStorage instance to add the instance
+            BaseModel.storage.new(self)  # Use the storage attribute to add the instance
 
     def save(self):
         '''
         Saves the instance to the storage.
         '''
         self.updated_at = datetime.now()
-        FileStorage().save()  # Use the FileStorage instance to save the instance
+        BaseModel.storage.save()  # Use the storage attribute to save the instance
 
     def __str__(self):
         '''

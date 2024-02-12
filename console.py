@@ -18,11 +18,6 @@ from datetime import datetime
 
 class HBNBCommand(cmd.Cmd):
     prompt = "(hbnb) "
-    """
-    cmd Module.
-    for building line-oriented command interpreters
-    """
-    prompt = "(hbnb) "
 
     def do_quit(self, line):
         """
@@ -81,63 +76,122 @@ class HBNBCommand(cmd.Cmd):
                     print("** class doesn't exist **")
         else:
             print("** class name missing **")
+
     def do_show(self, line):
         """
-        Docs
+        Prints the string representation of an instance based on the class name and id.
         """
-        staged_classes = [
-                "BaseModel", "User", "State",
-                "City", "Amenity", "Place", "Review"]
-        if len(line) > 0:
-            line_array = line.split()
-            if len(line_array) > 0:
-                class_name = line_array[0]
-                if class_name in staged_classes:
-                    if len(line_array) > 1:
-                        objs_dict = models.storage.all()
-                        scout_string = "{}.{}".format(
-                                class_name, line_array[1])
-                        if scout_string in objs_dict:
-                            print(objs_dict[scout_string])
-                        else:
-                            print("** no instance found **")
-                    else:
-                        print("** instance id missing **")
-                else:
-                    print("** class doesn't exist **")
-        else:
+        if not line:
             print("** class name missing **")
+            return
 
-def do_destroy(self, line):
-        """
-        Deletes an instance based on the class name and id
-        (save the change into the JSON file)
-        """
-        staged_classes = [
-                "BaseModel", "User", "State",
-                "City", "Amenity", "Place", "Review"]
-        if len(line) > 0:
-            line_array = line.split()
-            if len(line_array) > 0:
-                class_name = line_array[0]
-                if class_name in staged_classes:
-                    if len(line_array) > 1:
-                        objs_dict = models.storage.all()
-                        scout_string = "{}.{}".format(
-                                class_name, line_array[1])
-                        if scout_string in objs_dict:
-                            del (objs_dict[scout_string])
-                            models.storage.save()
-                        else:
-                            print("** no instance found **")
-                    else:
-                        print("** instance id missing **")
-                else:
-                    print("** class doesn't exist **")
+        line_array = line.split()
+        if len(line_array) < 2:
+            print("** instance id missing **")
+            return
+
+        class_name = line_array[0]
+        obj_id = line_array[1]
+
+        if class_name not in ["BaseModel", "User", "State", "City", "Amenity", "Place", "Review"]:
+            print("** class doesn't exist **")
+            return
+
+        key = "{}.{}".format(class_name, obj_id)
+        objs_dict = models.storage.all()
+        if key in objs_dict:
+            print(objs_dict[key])
         else:
-            print("** class name missing **")
+            print("** no instance found **")
 
-def fill_custom_command(self, class_name, motion):
+    def do_destroy(self, line):
+        """
+        Deletes an instance based on the class name and id.
+        """
+        if not line:
+            print("** class name missing **")
+            return
+
+        line_array = line.split()
+        if len(line_array) < 2:
+            print("** instance id missing **")
+            return
+
+        class_name = line_array[0]
+        obj_id = line_array[1]
+
+        if class_name not in ["BaseModel", "User", "State", "City", "Amenity", "Place", "Review"]:
+            print("** class doesn't exist **")
+            return
+
+        key = "{}.{}".format(class_name, obj_id)
+        objs_dict = models.storage.all()
+        if key in objs_dict:
+            del objs_dict[key]
+            models.storage.save()
+        else:
+            print("** no instance found **")
+
+    def do_all(self, line):
+        """
+        Prints all string representations of instances based on the class name.
+        """
+        if not line:
+            all_instances = models.storage.all().values()
+        else:
+            class_name = line.split()[0]
+            if class_name not in ["BaseModel", "User", "State", "City", "Amenity", "Place", "Review"]:
+                print("** class doesn't exist **")
+                return
+            all_instances = [obj for key, obj in models.storage.all().items() if key.startswith(class_name + ".")]
+
+        print([str(instance) for instance in all_instances])
+
+    def do_update(self, line):
+        """
+        Updates an instance based on the class name and id by adding or updating attribute.
+        """
+        if not line:
+            print("** class name missing **")
+            return
+
+        line_array = line.split()
+        if len(line_array) < 2:
+            print("** instance id missing **")
+            return
+
+        class_name = line_array[0]
+        obj_id = line_array[1]
+
+        if class_name not in ["BaseModel", "User", "State", "City", "Amenity", "Place", "Review"]:
+            print("** class doesn't exist **")
+            return
+
+        key = "{}.{}".format(class_name, obj_id)
+        objs_dict = models.storage.all()
+        if key not in objs_dict:
+            print("** no instance found **")
+            return
+
+        if len(line_array) < 3:
+            print("** attribute name missing **")
+            return
+
+        if len(line_array) < 4:
+            print("** value missing **")
+            return
+
+        attribute_name = line_array[2]
+        attribute_value = line_array[3]
+
+        if attribute_name in ["id", "created_at", "updated_at"]:
+            return
+
+        obj = objs_dict[key]
+        setattr(obj, attribute_name, attribute_value)
+        obj.save()
+
+    def fill_custom_command(self, class_name, motion):
         """Handling of custom commands like <class name>.all()
         or <class name>.count()."""
         units = motion.split("(")
@@ -192,7 +246,7 @@ def fill_custom_command(self, class_name, motion):
             print(f"Unrecognized action: {motion}.\
             Type 'help' for assistance.\n")
 
-def default(self, line):
+    def default(self, line):
         """Handle unrecognized commands."""
         units = line.split('.')
         if len(units) == 2:
@@ -201,109 +255,8 @@ def default(self, line):
         else:
             print(f"Unrecognized command: {line}.\
                   Type 'help' for assistance.\n")
-def do_all(self, line):
-        """
-        Deletes an instance based on the class name and id
-        (save the change into the JSON file)
-        """
-        staged_classes = [
-                "BaseModel", "User", "State",
-                "City", "Amenity", "Place", "Review"]
-        if len(line) > 0:
-            line_array = line.split()
-            if len(line_array) > 0:
-                class_name = line_array[0]
-                if class_name in staged_classes:
-                    full_list = []
-                    for key, value in models.storage.all().items():
-                        if (class_name in key):
-                            full_list.append(str(value))
-                    print(full_list)
-                else:
-                    print("** class doesn't exist **")
-        else:
-            full_list = []
-            for key, value in models.storage.all().items():
-                full_list.append(str(value))
-            print(full_list)
 
-def do_update(self, line):
-        """
-        Updates an instance based on the class name and id by adding
-        or updating attribute (save the change into the JSON file)
-        """
-        staged_classes = [
-                "BaseModel", "User", "State",
-                "City", "Amenity", "Place", "Review"]
-        if len(line) > 0:
-            line_array = line.split()
-            if len(line_array) > 0:
-                class_name = line_array[0]
-                if class_name in staged_classes:
-                    if len(line_array) > 1:
-                        objs_dict = models.storage.all()
-                        scout_string = "{}.{}".format(
-                                class_name, line_array[1])
-                        if scout_string in objs_dict:
-                            if len(line_array) > 2:
-                                if len(line_array) > 3:
-                                    if (line_array[3]
-                                            not in
-                                            ["created_at",
-                                                "updated_at", "id"]):
-                                        setattr(objs_dict[scout_string], str(
-                                            line_array[2]), str(line_array[3]))
-                                else:
-                                    print("** value missing **")
-                            else:
-                                print("** attribute name missing **")
-                        else:
-                            print("** no instance found **")
-                    else:
-                        print("** instance id missing **")
-                else:
-                    print("** class doesn't exist **")
-        else:
-            print("** class name missing **")
-
-def data_model_func(self, line, class_name):
-        """
-        handles all data models
-        """
-        allowed_methods = [".all()", ".count()"]
-        show_regex = re.compile(r"\.show\(\"(.*?)\"\)")
-        delete_regex = re.compile(r"\.destroy\(\"(.*?)\"\)")
-        update_regex = re.compile(r"\.update\(\"(.*?)\", \"(.*?)\", (.*?)\)")
-        update_dict_regex = re.compile(r"\.update\(\"(.*?)\",(.*?)\)")
-        if len(line) > 0:
-            line_array = line.split()
-            if len(line_array) > 0:
-                command_method = line_array[0]
-                if command_method in allowed_methods:
-                    if command_method == ".all()":
-                        self.do_all(class_name)
-                    if command_method == ".count()":
-                        self.get_count(class_name)
-                elif (show_regex.search(line_array[0]) is not None):
-                    obj_id = show_regex.search(line_array[0]).group(1)
-                    self.do_show("{} {}".format(class_name, obj_id))
-                elif (delete_regex.search(line_array[0]) is not None):
-                    obj_id = delete_regex.search(line_array[0]).group(1)
-                    self.do_destroy("{} {}".format(class_name, obj_id))
-                elif (update_regex.search(line) is not None):
-                    obj_id = update_regex.search(line).group(1)
-                    obj_attr_name = update_regex.search(line).group(2)
-                    obj_attr_value = update_regex.search(line).group(3)
-                    self.do_update("{} {} {} {}".format(
-                        class_name, obj_id, obj_attr_name, obj_attr_value))
-                elif (update_dict_regex.search(line) is not None):
-                    obj_id = update_dict_regex.search(line).group(1)
-                    obj_dict = eval(update_dict_regex.search(line).group(2))
-                    for key, value in obj_dict.items():
-                        self.do_update("{} {} {} {}".format(
-                            class_name, obj_id, key, value))
-
-def get_count(self, class_name):
+    def get_count(self, class_name):
         """
         Account for full count of all the dataset
         """

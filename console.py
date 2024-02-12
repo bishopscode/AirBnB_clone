@@ -1,106 +1,59 @@
 #!/usr/bin/python3
-
-"""The cmd Module.
-for building line-oriented command interpreters
+"""
+This module defines a command interpreter class for the AirBnB project.
 """
 import cmd
-from models.base_model import BaseModel
+import shlex
 import models
-import re
+from models.base_model import BaseModel
 from models.user import User
-from models.state import State
-from models.city import City
-from models.amenity import Amenity
-from models.place import Place
-from models.review import Review
-from datetime import datetime
 
 
 class HBNBCommand(cmd.Cmd):
+    """
+    Command interpreter class
+    """
     prompt = "(hbnb) "
-
-    def do_quit(self, line):
-        """
-        command for quitting
-        """
-        return True
-
-    def do_EOF(self, line):
-        """
-        determines what happens at end of file
-        """
-        return True
-
-    def emptyline(self):
-        """
-        handles an empty line
-        """
-        pass
 
     def do_create(self, line):
         """
-        handles the create action
-        """
-        if len(line) > 0:
-            line_array = line.split()
-            if len(line_array) > 0:
-                if line_array[0] == "BaseModel":
-                    obj = BaseModel()
-                    obj.save()
-                    print(obj.id)
-                elif line_array[0] == "User":
-                    obj = User()
-                    obj.save()
-                    print(obj.id)
-                elif line_array[0] == "State":
-                    obj = State()
-                    obj.save()
-                    print(obj.id)
-                elif line_array[0] == "City":
-                    obj = City()
-                    obj.save()
-                    print(obj.id)
-                elif line_array[0] == "Amenity":
-                    obj = Amenity()
-                    obj.save()
-                    print(obj.id)
-                elif line_array[0] == "Place":
-                    obj = Place()
-                    obj.save()
-                    print(obj.id)
-                elif line_array[0] == "Review":
-                    obj = Review()
-                    obj.save()
-                    print(obj.id)
-                else:
-                    print("** class doesn't exist **")
-        else:
-            print("** class name missing **")
-
-    def do_show(self, line):
-        """
-        Prints the string representation of an instance based on the class name and id.
+        Creates a new instance of BaseModel, saves it (to the JSON file)
+        and prints the id.
         """
         if not line:
             print("** class name missing **")
             return
 
-        line_array = line.split()
-        if len(line_array) < 2:
-            print("** instance id missing **")
-            return
-
-        class_name = line_array[0]
-        obj_id = line_array[1]
-
-        if class_name not in ["BaseModel", "User", "State", "City", "Amenity", "Place", "Review"]:
+        class_name = line.split()[0]
+        if class_name not in ['BaseModel', 'User']:
             print("** class doesn't exist **")
             return
 
-        key = "{}.{}".format(class_name, obj_id)
-        objs_dict = models.storage.all()
-        if key in objs_dict:
-            print(objs_dict[key])
+        new_instance = eval(class_name)()
+        new_instance.save()
+        print(new_instance.id)
+
+    def do_show(self, line):
+        """
+        Prints the string representation of an instance
+        based on the class name and id.
+        """
+        if not line:
+            print("** class name missing **")
+            return
+
+        args = shlex.split(line)
+        if args[0] not in ['BaseModel', 'User']:
+            print("** class doesn't exist **")
+            return
+        elif len(args) == 1:
+            print("** instance id missing **")
+            return
+
+        key = args[0] + '.' + args[1]
+        all_objs = models.storage.all()
+        if key in all_objs:
+            print(all_objs[key])
         else:
             print("** no instance found **")
 
@@ -112,166 +65,115 @@ class HBNBCommand(cmd.Cmd):
             print("** class name missing **")
             return
 
-        line_array = line.split()
-        if len(line_array) < 2:
+        args = shlex.split(line)
+        if args[0] not in ['BaseModel', 'User']:
+            print("** class doesn't exist **")
+            return
+        elif len(args) == 1:
             print("** instance id missing **")
             return
 
-        class_name = line_array[0]
-        obj_id = line_array[1]
-
-        if class_name not in ["BaseModel", "User", "State", "City", "Amenity", "Place", "Review"]:
-            print("** class doesn't exist **")
-            return
-
-        key = "{}.{}".format(class_name, obj_id)
-        objs_dict = models.storage.all()
-        if key in objs_dict:
-            del objs_dict[key]
+        key = args[0] + '.' + args[1]
+        all_objs = models.storage.all()
+        if key in all_objs:
+            del all_objs[key]
             models.storage.save()
         else:
             print("** no instance found **")
 
     def do_all(self, line):
         """
-        Prints all string representations of instances based on the class name.
+        Prints all string representation of all instances
+        based or not on the class name.
         """
+        all_objs = models.storage.all()
         if not line:
-            all_instances = models.storage.all().values()
+            print([str(obj) for obj in all_objs.values()])
+        elif line not in ['BaseModel', 'User']:
+            print("** class doesn't exist **")
         else:
-            class_name = line.split()[0]
-            if class_name not in ["BaseModel", "User", "State", "City", "Amenity", "Place", "Review"]:
-                print("** class doesn't exist **")
-                return
-            all_instances = [obj for key, obj in models.storage.all().items() if key.startswith(class_name + ".")]
-
-        print([str(instance) for instance in all_instances])
+            print([str(obj) for obj in all_objs.values() if type(obj).__name__ == line])
 
     def do_update(self, line):
         """
-        Updates an instance based on the class name and id by adding or updating attribute.
+        Updates an instance based on the class name and id
+        by adding or updating attribute.
         """
         if not line:
             print("** class name missing **")
             return
 
-        line_array = line.split()
-        if len(line_array) < 2:
-            print("** instance id missing **")
-            return
-
-        class_name = line_array[0]
-        obj_id = line_array[1]
-
-        if class_name not in ["BaseModel", "User", "State", "City", "Amenity", "Place", "Review"]:
+        args = shlex.split(line)
+        if args[0] not in ['BaseModel', 'User']:
             print("** class doesn't exist **")
             return
-
-        key = "{}.{}".format(class_name, obj_id)
-        objs_dict = models.storage.all()
-        if key not in objs_dict:
-            print("** no instance found **")
+        elif len(args) == 1:
+            print("** instance id missing **")
             return
-
-        if len(line_array) < 3:
+        elif len(args) == 2:
             print("** attribute name missing **")
             return
-
-        if len(line_array) < 4:
+        elif len(args) == 3:
             print("** value missing **")
             return
 
-        attribute_name = line_array[2]
-        attribute_value = line_array[3]
-
-        if attribute_name in ["id", "created_at", "updated_at"]:
+        key = args[0] + '.' + args[1]
+        all_objs = models.storage.all()
+        if key not in all_objs:
+            print("** no instance found **")
             return
 
-        obj = objs_dict[key]
-        setattr(obj, attribute_name, attribute_value)
-        obj.save()
+        setattr(all_objs[key], args[2], args[3])
+        models.storage.save()
 
-    def fill_custom_command(self, class_name, motion):
-        """Handling of custom commands like <class name>.all()
-        or <class name>.count()."""
-        units = motion.split("(")
-        if len(units) == 2 and units[1].endswith(')'):
-            motion_name = units[0]
-            motion_args = units[1][:-1].split(',')
+    def emptyline(self):
+        """
+        Called when an empty line is entered in response to the prompt.
+        Does nothing by default.
+        """
+        pass
 
-            # Striping of surrounding quotes if present
-            motion_args = [arg.strip('\"') for arg in motion_args]
+    def do_EOF(self, line):
+        """
+        Handles the EOF signal to exit the program.
+        """
+        print()
+        return True
 
-            if motion_name == 'show':
-                key = "{}.{}".format(class_name, motion_args[0])
-                if key in models.storage.all():
-                    print(models.storage.all()[key])
-                else:
-                    print(f"** no instance found **")
-            elif motion_name == 'all':
-                instances = [
-                    str(obj) for key, obj in models.storage.all().items()
-                    if key.startswith(class_name + '.')
-                ]
-                print(instances)
-            elif motion_name == 'count':
-                count = sum(
-                    1 for key in models.storage.all()
-                    if key.startswith(class_name + '.')
-                )
-                print(count)
-            elif motion_name == 'destroy':
-                key = "{}.{}".format(class_name, motion_args[0])
-                if key in models.storage.all():
-                    del models.storage.all()[key]
-                    models.storage.save()
-                else:
-                    print(f"** no instance found **")
-            elif motion_name == 'update':
-                key = "{}.{}".format(class_name, motion_args[0])
-                if key in models.storage.all():
-                    obj = models.storage.all()[key]
-                    attribute_name = motion_args[1]
-                    attribute_value = motion_args[2]
+    def do_quit(self, line):
+        """
+        Quit command to exit the program.
+        """
+        return True
 
-                    # Updating the attribute with the given value
-                    setattr(obj, attribute_name, attribute_value)
-                    obj.save()
-                else:
-                    print(f"** no instance found **")
+    def precmd(self, line):
+        """
+        This method is called after the input prompt is displayed
+        but before the input is read and interpreted.
+        """
+        if '.' not in line:
+            return line
+        else:
+            units = line.split('.')
+            class_name = units[0]
+            motion = units[1]
+
+            if motion == "all()":
+                return class_name + " all"
+            elif motion[:4] == "show":
+                return class_name + " " + motion[5:-2]
+            elif motion[:7] == "destroy":
+                return class_name + " " + motion[8:-2]
+            elif motion[:6] == "update":
+                rest = motion[7:]
+                idx = rest.find('"') + 1
+                attribute = rest[:idx]
+                rest = rest[idx + 1:].strip()
+                idx = rest.find('"') + 1
+                value = rest[:idx]
+                return class_name + " " + rest[idx + 1:-1] + " " + attribute + " " + value
             else:
-                print(f"Unrecognized action: {motion_name}.\
-                Type 'help' for assistance.\n")
-        else:
-            print(f"Unrecognized action: {motion}.\
-            Type 'help' for assistance.\n")
-
-    def default(self, line):
-        """Handle unrecognized commands."""
-        units = line.split('.')
-        if len(units) == 2:
-            class_name, motion = units
-            self.fill_custom_command(class_name, motion)
-        else:
-            print(f"Unrecognized command: {line}.\
-                  Type 'help' for assistance.\n")
-
-    def get_count(self, class_name):
-        """
-        Account for full count of all the dataset
-        """
-        staged_classes = [
-                "BaseModel", "User", "State",
-                "City", "Amenity", "Place", "Review"]
-        if class_name in staged_classes:
-            full_list = []
-            for key, value in models.storage.all().items():
-                if (class_name in key):
-                    full_list.append(str(value))
-            print(len(full_list))
-        else:
-            print("** class doesn't exist **")
-
+                return line
 
 if __name__ == '__main__':
     HBNBCommand().cmdloop()

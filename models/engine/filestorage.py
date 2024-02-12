@@ -1,188 +1,56 @@
-#!/usr/bin/python3
-
-# main.py
-
-import models
-from cmd import Cmd
+from json import dumps, loads
 from models.base_model import BaseModel
+from os.path import isfile
 from models.user import User
 from models.state import State
 from models.city import City
-from models.amenity import Amenity
 from models.place import Place
+from models.amenity import Amenity
 from models.review import Review
-from file_storage import FileStorage  # Import FileStorage class
 
-class HBNBCommand(Cmd):
-    prompt = "(hbnb) "
+class FileStorage:
 
-    def __init__(self):
-        super().__init__()
-        # Instantiate FileStorage and assign it to models.storage
-        models.storage = FileStorage()
+    CLASSES = {
+        'BaseModel': BaseModel,
+        'User': User,
+        'State': State,
+        'City': City,
+        'Amenity': Amenity,
+        'Place': Place,
+        'Review': Review
+    }
 
-    def do_quit(self, line):
-        """
-        command for quitting
-        """
-        return True
+    __file_path = "file.json"
+    __objects = {}
 
-    def do_EOF(self, line):
-        """
-        determines what happens at end of file
-        """
-        return True
+    def all(self):
+        return FileStorage.__objects
 
-    def emptyline(self):
-        """
-        handles an empty line
-        """
-        pass
+    def new(self, obj):
+        key = "{}.{}".format(obj.__class__.__name__, obj.id)
+        FileStorage.__objects[key] = obj
 
-    def do_create(self, line):
-        """
-        handles the create action
-        """
-        if len(line) > 0:
-            line_array = line.split()
-            if len(line_array) > 0:
-                class_name = line_array[0]
-                if class_name in models.storage.CLASSES:
-                    obj = models.storage.CLASSES[class_name]()
-                    obj.save()
-                    print(obj.id)
-                else:
-                    print("** class doesn't exist **")
-        else:
-            print("** class name missing **")
+    def save(self):
+        full_dict = {
+            key: value.to_dict() for key, value
+            in FileStorage.__objects.items()
+        }
+        json_string = dumps(full_dict)
+        filename = FileStorage.__file_path
+        with open(filename, "w") as f:
+            f.write(json_string)
 
-    def do_show(self, line):
-        """
-        Docs
-        """
-        staged_classes = [
-            "BaseModel", "User", "State", "City",
-            "Amenity", "Place", "Review"
-        ]
-        if len(line) > 0:
-            line_array = line.split()
-            if len(line_array) > 0:
-                class_name = line_array[0]
+    def reload(self):
+        staged_classes = ["BaseModel", "User", "State", "City",
+                           "Amenity", "Place", "Review"]
+        filename = FileStorage.__file_path
+        if isfile(filename):
+            with open(filename, "r") as f:
+                json_string = f.read()
+                full_dict = loads(json_string)
+            for key, value in full_dict.items():
+                class_name, obj_id = key.split(".")
                 if class_name in staged_classes:
-                    if len(line_array) > 1:
-                        objs_dict = models.storage.all()
-                        scout_string = "{}.{}".format(
-                            class_name, line_array[1])
-                        if scout_string in objs_dict:
-                            print(objs_dict[scout_string])
-                        else:
-                            print("** no instance found **")
-                    else:
-                        print("** instance id missing **")
-                else:
-                    print("** class doesn't exist **")
+                    eval("self.new({}(**value))".format(class_name))
         else:
-            print("** class name missing **")
-
-    def do_destroy(self, line):
-        """
-        Deletes an instance based on the class name and id
-        (save the change into the JSON file)
-        """
-        staged_classes = [
-            "BaseModel", "User", "State", "City",
-            "Amenity", "Place", "Review"
-        ]
-        if len(line) > 0:
-            line_array = line.split()
-            if len(line_array) > 0:
-                class_name = line_array[0]
-                if class_name in staged_classes:
-                    if len(line_array) > 1:
-                        objs_dict = models.storage.all()
-                        scout_string = "{}.{}".format(
-                            class_name, line_array[1])
-                        if scout_string in objs_dict:
-                            del (objs_dict[scout_string])
-                            models.storage.save()
-                        else:
-                            print("** no instance found **")
-                    else:
-                        print("** instance id missing **")
-                else:
-                    print("** class doesn't exist **")
-        else:
-            print("** class name missing **")
-
-    def do_all(self, line):
-        """
-        Deletes an instance based on the class name and id
-        (save the change into the JSON file)
-        """
-        staged_classes = [
-            "BaseModel", "User", "State", "City",
-            "Amenity", "Place", "Review"
-        ]
-        if len(line) > 0:
-            line_array = line.split()
-            if len(line_array) > 0:
-                class_name = line_array[0]
-                if class_name in staged_classes:
-                    full_list = []
-                    for key, value in models.storage.all().items():
-                        if (class_name in key):
-                            full_list.append(str(value))
-                    print(full_list)
-                else:
-                    print("** class doesn't exist **")
-        else:
-            full_list = []
-            for key, value in models.storage.all().items():
-                full_list.append(str(value))
-            print(full_list)
-
-    def do_update(self, line):
-        """
-        Updates an instance based on the class name and id by adding
-        or updating attribute (save the change into the JSON file)
-        """
-        staged_classes = [
-            "BaseModel", "User", "State", "City",
-            "Amenity", "Place", "Review"
-        ]
-        if len(line) > 0:
-            line_array = line.split()
-            if len(line_array) > 0:
-                class_name = line_array[0]
-                if class_name in staged_classes:
-                    if len(line_array) > 1:
-                        objs_dict = models.storage.all()
-                        scout_string = "{}.{}".format(
-                            class_name, line_array[1])
-                        if scout_string in objs_dict:
-                            if len(line_array) > 2:
-                                if len(line_array) > 3:
-                                    if (line_array[3]
-                                            not in
-                                            ["created_at",
-                                             "updated_at", "id"]):
-                                        setattr(
-                                            objs_dict[scout_string],
-                                            str(line_array[2]),
-                                            str(line_array[3]))
-                                else:
-                                    print("** value missing **")
-                            else:
-                                print("** attribute name missing **")
-                        else:
-                            print("** no instance found **")
-                    else:
-                        print("** instance id missing **")
-                else:
-                    print("** class doesn't exist **")
-        else:
-            print("** class name missing **")
-
-
-if __name__ == '__main__':
-    HBNBCommand().cmdloop()
+            print("File not found, no objects loaded.")

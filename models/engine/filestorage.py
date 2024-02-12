@@ -1,8 +1,5 @@
 #!/usr/bin/python3
 
-'''
-Module Docs
-'''
 from json import dumps, loads
 from models.base_model import BaseModel
 from os.path import isfile
@@ -13,10 +10,14 @@ from models.place import Place
 from models.amenity import Amenity
 from models.review import Review
 
+
 class FileStorage:
     """
-    This class manages the serialization and deserialization of objects to JSON file.
+        Private class attributes:
+    __file_path: string - path to the JSON file
+    __objects: dictionary - empty, will store all objects by <class name>.id
     """
+
     CLASSES = {
         'BaseModel': BaseModel,
         'User': User,
@@ -44,8 +45,8 @@ class FileStorage:
         Serializes __objects to the JSON file -> path: __file_path
         '''
         full_dict = {
-                key: value.to_dict() for key, value
-                in FileStorage.__objects.items()}
+            key: value.to_dict() for key, value
+            in FileStorage.__objects.items()}
         json_string = dumps(full_dict)
         filename = FileStorage.__file_path
         with open(filename, "w") as f:
@@ -68,5 +69,3 @@ class FileStorage:
                 class_name, obj_id = key.split(".")
                 if class_name in staged_classes:
                     eval("self.new({}(**value))".format(class_name))
-        else:
-            print("File not found, no objects loaded.")

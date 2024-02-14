@@ -1,12 +1,22 @@
-#1/usr/bin/python3
-
+#!/usr/bin/python3
+'''
+Module Docs
+'''
 from json import dumps, loads
+from models.base_model import BaseModel
 from os.path import isfile
+from models.user import User
+from models.state import State
+from models.city import City
+from models.place import Place
+from models.amenity import Amenity
+from models.review import Review
 
 class FileStorage:
+
     """
-    Private class attributes:
-    __file_path: string - path to the JSON file
+        Private class attributes:
+    __file_path: string - path to JSON file
     __objects: dictionary - empty, will store all objects by <class name>.id
     """
 
@@ -31,18 +41,18 @@ class FileStorage:
         """Sets in __objects the obj with key <obj class name>.id."""
         key = "{}.{}".format(obj.__class__.__name__, obj.id)
         FileStorage.__objects[key] = obj
-
     def save(self):
         '''
         Serializes __objects to the JSON file -> path: __file_path
         '''
         full_dict = {
-            key: value.to_dict() for key, value
-            in FileStorage.__objects.items()}
+                key: value.to_dict() for key, value
+                in FileStorage.__objects.items()}
         json_string = dumps(full_dict)
         filename = FileStorage.__file_path
         with open(filename, "w") as f:
             f.write(json_string)
+   
 
     def reload(self):
         '''
@@ -51,7 +61,7 @@ class FileStorage:
         If the file does not exist, no exception should be raised
         '''
         staged_classes = ["BaseModel", "User", "State", "City",
-                          "Amenity", "Place", "Review"]
+                           "Amenity", "Place", "Review"]
         filename = FileStorage.__file_path
         if isfile(filename):
             with open(filename, "r") as f:
@@ -60,5 +70,5 @@ class FileStorage:
             for key, value in full_dict.items():
                 class_name, obj_id = key.split(".")
                 if class_name in staged_classes:
-                    cls = self.CLASSES[class_name]
-                    self.new(cls(**value))
+                    eval("self.new({}(**value))".format(class_name))
+
